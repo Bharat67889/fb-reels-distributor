@@ -24,7 +24,7 @@ const FB_PAGES_POOL = [
     pageId: "1010347005495122",
     accessToken: "EAAa8JIAfxkMBSkdYd1VLNhYrBZB8YxvGCqDLZAd3ZB5RDLnFBHqNOLZBmlXREGg57QxkXH2flugsmCDguvlWsDHPfeQwwCtMblBilBz7PkyuDokDdiIDSate5zu7lklBu4ZA5LZA5mymhbMWUDvGx1aRFvn4raHRbTMw8xOEvKHGbH6TIO2nY8C0zUpXIiyMTOz9NZC",
     sticker: "fbsticker_a",
-    tagPrefix: "A"
+    tagPrefix: "a"
   }
   /*
   // Naya Page add karne ke liye bas ye uncomment karo:
