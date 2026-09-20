@@ -1,4 +1,3 @@
-
 name: FB Reels Multi-Page Distributor
 
 on:
@@ -21,7 +20,7 @@ jobs:
       - name: Install Dependencies
         run: npm install axios
 
-     - name: Wait for Main Pipeline (5 Minutes Buffer)
+      - name: Wait for Main Pipeline (5 Minutes Buffer)
         run: |
           echo "⏳ Waiting 300 seconds for Cloudinary rendering and main post completion..."
           sleep 300
