@@ -1,1 +1,30 @@
 
+name: FB Reels Multi-Page Distributor
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [trigger-distribution]
+
+jobs:
+  distribute:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install axios
+
+      - name: Wait for Main Pipeline (5 Minutes Buffer)
+        run: |
+          echo "⏳ Waiting 300 seconds for Cloudinary rendering and main post completion..."
+          sleep 300
+
+      - name: Run Sequential Distributor
+        run: node distribute.js
