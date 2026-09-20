@@ -25,6 +25,13 @@ const FB_PAGES_POOL = [
     accessToken: "EAAa8JIAfxkMBSkdYd1VLNhYrBZB8YxvGCqDLZAd3ZB5RDLnFBHqNOLZBmlXREGg57QxkXH2flugsmCDguvlWsDHPfeQwwCtMblBilBz7PkyuDokDdiIDSate5zu7lklBu4ZA5LZA5mymhbMWUDvGx1aRFvn4raHRbTMw8xOEvKHGbH6TIO2nY8C0zUpXIiyMTOz9NZC",
     sticker: "fbsticker_a",
     tagPrefix: "a"
+  },
+  {
+    name: "Positive Vibes Only",
+    pageId: "1037521126108764",
+    tagPrefix: "b",
+    sticker: "fbsticker_b",
+    accessToken: "EAAa8JIAfxkMBSsn5ZAkQmbYV1gOIGrwOenNxH2SxBqnUgG0VmzyYidBoFTJK7Cb9qUHyzQRQXNfyN1CxVZB84usZCCcEsVXhBGJfYCbFhu5G5dl2RFQRQCfLZCmQBRSwfH59Igr5IHxSxkA1P4784UEoJxpEx0ON8rB6D6LAbMcl6hZBYbyW9q3lDGcNP5R2ms2kv"
   }
   /*
   // Naya Page add karne ke liye bas ye uncomment karo:
