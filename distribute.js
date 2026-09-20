@@ -27,22 +27,25 @@ const FB_PAGES_POOL = [
   {
     name: "Positive Vibes Only",
     pageId: "1037521126108764",
-    tagPrefix: "b",
-    sticker: "fbsticker_b",
     accessToken:
-      "EAAa8JIAfxkMBSsn5ZAkQmbYV1gOIGrwOenNxH2SxBqnUgG0VmzyYidBoFTJK7Cb9qUHyzQRQXNfyN1CxVZB84usZCCcEsVXhBGJfYCbFhu5G5dl2RFQRQCfLZCmQBRSwfH59Igr5IHxSxkA1P4784UEoJxpEx0ON8rB6D6LAbMcl6hZBYbyW9q3lDGcNP5R2ms2kv"
+      "EAAa8JIAfxkMBSsn5ZAkQmbYV1gOIGrwOenNxH2SxBqnUgG0VmzyYidBoFTJK7Cb9qUHyzQRQXNfyN1CxVZB84usZCCcEsVXhBGJfYCbFhu5G5dl2RFQRQCfLZCmQBRSwfH59Igr5IHxSxkA1P4784UEoJxpEx0ON8rB6D6LAbMcl6hZBYbyW9q3lDGcNP5R2ms2kv",
+    sticker: "fbsticker_b",
+    tagPrefix: "b"
   }
 ];
 
+// Cloudinary URL Generator
 function buildCloudinaryUrl(publicId, stickerName) {
   return `https://res.cloudinary.com/${CLOUD_NAME}/video/upload/l_${stickerName},w_${BANNER_WIDTH},g_${BANNER_GRAVITY},x_${BANNER_MARGIN_X},y_${BANNER_MARGIN_Y}/${publicId}.mp4`;
 }
 
+// Extract base Cloudinary public ID from URL
 function extractPublicId(url) {
   const match = url.match(/\/([^\/\?]+)\.mp4/);
   return match ? match[1] : null;
 }
 
+// CSV Parser Helper
 function parseCSVLine(text) {
   let p = "",
     row = [""],
@@ -66,10 +69,12 @@ function parseCSVLine(text) {
   return row;
 }
 
+// Single Reel Publisher to Graph API
 async function publishReel(page, videoUrl, caption) {
   console.log(`\n🚀 Processing Page: [${page.name}] (${page.pageId})`);
   console.log(`📝 Modified Caption: ${caption}`);
 
+  // Phase 1: Initialize
   const initRes = await axios.post(
     `https://graph.facebook.com/v19.0/${page.pageId}/video_reels`,
     {
@@ -81,6 +86,7 @@ async function publishReel(page, videoUrl, caption) {
   const { video_id, upload_url } = initRes.data;
   console.log(`📦 Initialized. Video ID: ${video_id}`);
 
+  // Phase 2: Fetch Bytes & Upload Binary Stream
   const videoStream = await axios.get(videoUrl, {
     responseType: "arraybuffer",
     timeout: 60000
@@ -102,6 +108,7 @@ async function publishReel(page, videoUrl, caption) {
     `📤 Uploaded ${(videoBuffer.length / (1024 * 1024)).toFixed(2)} MB binary data.`
   );
 
+  // Phase 3: Publish
   const publishRes = await axios.post(
     `https://graph.facebook.com/v19.0/${page.pageId}/video_reels`,
     {
@@ -120,6 +127,7 @@ async function publishReel(page, videoUrl, caption) {
   );
 }
 
+// Main Runner
 async function main() {
   try {
     console.log("🔍 Fetching latest processed reel from PinterestQueue...");
@@ -153,18 +161,25 @@ async function main() {
     console.log(`🎯 Detected Video Public ID: ${cloudVideoId}`);
     console.log(`📋 Original Main Caption: ${mainCaption}`);
 
+    // Facebook Caption Clean: "Visit Site" -> "Check Bio"
+    const fbCleanCaption = mainCaption.replace(/visit\s*site/gi, "Check Bio");
+    console.log(`✨ FB Formatted Caption: ${fbCleanCaption}`);
+
+    // Sequential loop across pool with isolated error handling
     for (const page of FB_PAGES_POOL) {
       try {
-        const modifiedCaption = `${page.tagPrefix}${mainCaption}`;
+        const modifiedCaption = `${page.tagPrefix}${fbCleanCaption}`;
         const videoUrl = buildCloudinaryUrl(cloudVideoId, page.sticker);
         await publishReel(page, videoUrl, modifiedCaption);
       } catch (err) {
-        const errMsg = err.response ? JSON.stringify(err.response.data) : err.message;
+        const errMsg = err.response
+          ? JSON.stringify(err.response.data)
+          : err.message;
         console.error(`❌ [Page Skipped: ${page.name}]: ${errMsg}`);
       }
     }
 
-    console.log("\n🏁 All pool pages processing completed!");
+    console.log("\n🏁 All FB pool pages processing completed!");
     process.exit(0);
   } catch (error) {
     console.error("🚨 Distributor initialization error:", error.message);
