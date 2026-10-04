@@ -11,7 +11,6 @@ const BANNER_MARGIN_Y = 40;
 const FALLBACK_PIN_QUEUE_TSV =
   "https://docs.google.com/spreadsheets/d/1MrwItyy6IPNLSJbz1b53TGOTS2JBLTyg46Ql9xZpI6w/gviz/tq?tqx=out:csv&sheet=PinterestQueue";
 
-// Test Pool (Donon stickers test karne ke liye)
 const TEST_PAGES = [
   {
     name: "Love & Feelings (Test)",
@@ -80,18 +79,19 @@ async function testMain() {
       throw new Error("Invalid video URL in the last row: " + latestVideoUrl);
     }
 
-    // Agar URL me pehle se koi transformation lagi ho toh use hata kar raw video URL bana lo
     const rawVideoUrl = latestVideoUrl.replace(/\/video\/upload\/.*\/([^\/]+\.mp4)$/, "/video/upload/$1");
     console.log("🎯 Raw Base Video URL: " + rawVideoUrl);
 
-    // 1. Download Base Video (Zero transformation credits used)
+    // 1. Download Base Video (Zero transform credits)
     await downloadFile(rawVideoUrl, baseVideoPath);
 
-    // 2. Stickers download karo aur FFmpeg se overlay lagao
+    // 2. Loop through stickers
     for (const item of TEST_PAGES) {
       console.log(`\n--- 🧪 Testing sticker: \({item.sticker} for\){item.name} ---`);
       const stickerPath = path.join(__dirname, `${item.sticker}.png`);
-      const stickerUrl = `https://res.cloudinary.com/\({CLOUD_NAME}/image/upload/\){item.sticker}.png`;
+      
+      // Clean URL string concatenation:
+      const stickerUrl = "https://res.cloudinary.com/" + CLOUD_NAME + "/image/upload/" + item.sticker + ".png";
       
       await downloadFile(stickerUrl, stickerPath);
 
