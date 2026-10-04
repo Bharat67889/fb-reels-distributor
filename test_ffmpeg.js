@@ -1,0 +1,122 @@
+const axios = require("axios");
+const { execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+
+const CLOUD_NAME = "djlipqlut";
+const BANNER_WIDTH = 380;
+const BANNER_MARGIN_X = 10;
+const BANNER_MARGIN_Y = 40;
+
+const FALLBACK_PIN_QUEUE_TSV =
+  "https://docs.google.com/spreadsheets/d/1MrwItyy6IPNLSJbz1b53TGOTS2JBLTyg46Ql9xZpI6w/gviz/tq?tqx=out:csv&sheet=PinterestQueue";
+
+// Test Pool (Sirf 1-2 pages test karne ke liye)
+const TEST_PAGES = [
+  {
+    name: "Love & Feelings (Test)",
+    sticker: "fbsticker_a",
+    tagPrefix: "a"
+  },
+  {
+    name: "Positive Vibes Only (Test)",
+    sticker: "fbsticker_b",
+    tagPrefix: "b"
+  }
+];
+
+function extractPublicId(url) {
+  const match = url.match(/\/([^\/\?]+)\.mp4/);
+  return match ? match[1] : null;
+}
+
+function parseCSVLine(text) {
+  let p = "", row = [""], i = 0, q = false;
+  for (let c of text) {
+    if (c === '"') {
+      if (q && p === '"') row[i] += '"';
+      q = !q;
+    } else if (c === "," && !q) {
+      row[++i] = "";
+    } else if (c === "\n" && !q) {
+      break;
+    } else {
+      row[i] += c;
+    }
+    p = c;
+  }
+  return row;
+}
+
+async function downloadFile(url, targetPath) {
+  console.log(`⬇️ Downloading asset: ${url}`);
+  const res = await axios({
+    method: "GET",
+    url: url,
+    responseType: "stream",
+    timeout: 60000
+  });
+  const writer = fs.createWriteStream(targetPath);
+  res.data.pipe(writer);
+  return new Promise((resolve, reject) => {
+    writer.on("finish", resolve);
+    writer.on("error", reject);
+  });
+}
+
+function renderVideoWithSticker(inputVideo, stickerImg, outputPath) {
+  // FFmpeg command: Cloudinary wala exact positioning (x=10, y=40, width=380)
+  const cmd = `ffmpeg -y -i "\({inputVideo}" -i "\){stickerImg}" -filter_complex "[1:v]scale=\({BANNER_WIDTH}:-1[stk];[0:v][stk]overlay=\){BANNER_MARGIN_X}:\({BANNER_MARGIN_Y}" -c:a copy -preset ultrafast "\){outputPath}"`;
+  console.log(`🎬 Running FFmpeg Render: ${outputPath}`);
+  execSync(cmd, { stdio: "inherit" });
+}
+
+async function testMain() {
+  const baseVideoPath = path.join(__dirname, "base_raw.mp4");
+  const outputDir = path.join(__dirname, "test_outputs");
+  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
+
+  try {
+    console.log("🔍 Reading PinterestQueue Sheet...");
+    const sheetRes = await axios.get(FALLBACK_PIN_QUEUE_TSV, { timeout: 15000 });
+    const lines = sheetRes.data.split("\n").filter((l) => l.trim().length > 0);
+    const lastLine = lines[lines.length - 1];
+    const cols = parseCSVLine(lastLine);
+
+    const latestVideoUrl = cols[0] ? cols[0].replace(/^"|"$/g, "").trim() : "";
+    const cloudVideoId = extractPublicId(latestVideoUrl);
+    if (!cloudVideoId) throw new Error("Could not extract Public ID from Sheet: " + latestVideoUrl);
+
+    console.log(`🎯 Target Public ID: ${cloudVideoId}`);
+
+    // 1. Download RAW Base Video (Bina kisi sticker transformation ke -> Zero extra credits)
+    const rawVideoUrl = `https://res.cloudinary.com/\({CLOUD_NAME}/video/upload/\){cloudVideoId}.mp4`;
+    await downloadFile(rawVideoUrl, baseVideoPath);
+
+    // 2. Loop through stickers, download PNG from Cloudinary, aur FFmpeg se merge karo
+    for (const item of TEST_PAGES) {
+      console.log(`\n--- 🧪 Testing sticker: \({item.sticker} for\){item.name} ---`);
+      const stickerPath = path.join(__dirname, `${item.sticker}.png`);
+      const stickerUrl = `https://res.cloudinary.com/\({CLOUD_NAME}/image/upload/\){item.sticker}.png`;
+      
+      // Download sticker PNG
+      await downloadFile(stickerUrl, stickerPath);
+
+      // Render locally
+      const outVideo = path.join(outputDir, `output_${item.sticker}.mp4`);
+      renderVideoWithSticker(baseVideoPath, stickerPath, outVideo);
+
+      console.log(`✅ Generated successfully: output_${item.sticker}.mp4`);
+      if (fs.existsSync(stickerPath)) fs.unlinkSync(stickerPath);
+    }
+
+    console.log("\n🎉 TEST COMPLETE! Dono test videos ready hain.");
+  } catch (err) {
+    console.error("❌ Test failed:", err.message);
+    process.exit(1);
+  } finally {
+    if (fs.existsSync(baseVideoPath)) fs.unlinkSync(baseVideoPath);
+  }
+}
+
+testMain();
