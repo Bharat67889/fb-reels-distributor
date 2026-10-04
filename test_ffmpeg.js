@@ -57,8 +57,10 @@ async function downloadFile(url, targetPath) {
 }
 
 function renderVideoWithSticker(inputVideo, stickerImg, outputPath) {
-  const cmd = `ffmpeg -y -i "\({inputVideo}" -i "\){stickerImg}" -filter_complex "[1:v]scale=\({BANNER_WIDTH}:-1[stk];[0:v][stk]overlay=\){BANNER_MARGIN_X}:\({BANNER_MARGIN_Y}" -c:a copy -preset ultrafast "\){outputPath}"`;
-  console.log(`🎬 Running FFmpeg Render: ${outputPath}`);
+  const filterString = "[1:v]scale=" + BANNER_WIDTH + ":-1[stk];[0:v][stk]overlay=" + BANNER_MARGIN_X + ":" + BANNER_MARGIN_Y;
+  const cmd = 'ffmpeg -y -i "' + inputVideo + '" -i "' + stickerImg + '" -filter_complex "' + filterString + '" -c:a copy -preset ultrafast "' + outputPath + '"';
+  
+  console.log("🎬 Running FFmpeg Command:\n" + cmd);
   execSync(cmd, { stdio: "inherit" });
 }
 
@@ -82,23 +84,21 @@ async function testMain() {
     const rawVideoUrl = latestVideoUrl.replace(/\/video\/upload\/.*\/([^\/]+\.mp4)$/, "/video/upload/$1");
     console.log("🎯 Raw Base Video URL: " + rawVideoUrl);
 
-    // 1. Download Base Video (Zero transform credits)
+    // 1. Download Base Video
     await downloadFile(rawVideoUrl, baseVideoPath);
 
     // 2. Loop through stickers
     for (const item of TEST_PAGES) {
-      console.log(`\n--- 🧪 Testing sticker: \({item.sticker} for\){item.name} ---`);
-      const stickerPath = path.join(__dirname, `${item.sticker}.png`);
-      
-      // Clean URL string concatenation:
+      console.log("\n--- 🧪 Testing sticker: " + item.sticker + " for " + item.name + " ---");
+      const stickerPath = path.join(__dirname, item.sticker + ".png");
       const stickerUrl = "https://res.cloudinary.com/" + CLOUD_NAME + "/image/upload/" + item.sticker + ".png";
       
       await downloadFile(stickerUrl, stickerPath);
 
-      const outVideo = path.join(outputDir, `output_${item.sticker}.mp4`);
+      const outVideo = path.join(outputDir, "output_" + item.sticker + ".mp4");
       renderVideoWithSticker(baseVideoPath, stickerPath, outVideo);
 
-      console.log(`✅ Generated successfully: output_${item.sticker}.mp4`);
+      console.log("✅ Generated successfully: output_" + item.sticker + ".mp4");
       if (fs.existsSync(stickerPath)) fs.unlinkSync(stickerPath);
     }
 
