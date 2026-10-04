@@ -11,24 +11,17 @@ const BANNER_MARGIN_Y = 40;
 const FALLBACK_PIN_QUEUE_TSV =
   "https://docs.google.com/spreadsheets/d/1MrwItyy6IPNLSJbz1b53TGOTS2JBLTyg46Ql9xZpI6w/gviz/tq?tqx=out:csv&sheet=PinterestQueue";
 
-// Test Pool (Sirf 1-2 pages test karne ke liye)
+// Test Pool (Donon stickers test karne ke liye)
 const TEST_PAGES = [
   {
     name: "Love & Feelings (Test)",
-    sticker: "fbsticker_a",
-    tagPrefix: "a"
+    sticker: "fbsticker_a"
   },
   {
     name: "Positive Vibes Only (Test)",
-    sticker: "fbsticker_b",
-    tagPrefix: "b"
+    sticker: "fbsticker_b"
   }
 ];
-
-function extractPublicId(url) {
-  const match = url.match(/\/([^\/\?]+)\.mp4/);
-  return match ? match[1] : null;
-}
 
 function parseCSVLine(text) {
   let p = "", row = [""], i = 0, q = false;
@@ -49,7 +42,7 @@ function parseCSVLine(text) {
 }
 
 async function downloadFile(url, targetPath) {
-  console.log(`⬇️ Downloading asset: ${url}`);
+  console.log("⬇️ Downloading asset: " + url);
   const res = await axios({
     method: "GET",
     url: url,
@@ -65,7 +58,6 @@ async function downloadFile(url, targetPath) {
 }
 
 function renderVideoWithSticker(inputVideo, stickerImg, outputPath) {
-  // FFmpeg command: Cloudinary wala exact positioning (x=10, y=40, width=380)
   const cmd = `ffmpeg -y -i "\({inputVideo}" -i "\){stickerImg}" -filter_complex "[1:v]scale=\({BANNER_WIDTH}:-1[stk];[0:v][stk]overlay=\){BANNER_MARGIN_X}:\({BANNER_MARGIN_Y}" -c:a copy -preset ultrafast "\){outputPath}"`;
   console.log(`🎬 Running FFmpeg Render: ${outputPath}`);
   execSync(cmd, { stdio: "inherit" });
@@ -83,26 +75,26 @@ async function testMain() {
     const lastLine = lines[lines.length - 1];
     const cols = parseCSVLine(lastLine);
 
-    const latestVideoUrl = cols[0] ? cols[0].replace(/^"|"$/g, "").trim() : "";
-    const cloudVideoId = extractPublicId(latestVideoUrl);
-    if (!cloudVideoId) throw new Error("Could not extract Public ID from Sheet: " + latestVideoUrl);
+    let latestVideoUrl = cols[0] ? cols[0].replace(/^"|"$/g, "").trim() : "";
+    if (!latestVideoUrl.startsWith("http")) {
+      throw new Error("Invalid video URL in the last row: " + latestVideoUrl);
+    }
 
-    console.log(`🎯 Target Public ID: ${cloudVideoId}`);
+    // Agar URL me pehle se koi transformation lagi ho toh use hata kar raw video URL bana lo
+    const rawVideoUrl = latestVideoUrl.replace(/\/video\/upload\/.*\/([^\/]+\.mp4)$/, "/video/upload/$1");
+    console.log("🎯 Raw Base Video URL: " + rawVideoUrl);
 
-    // 1. Download RAW Base Video (Bina kisi sticker transformation ke -> Zero extra credits)
-    const rawVideoUrl = `https://res.cloudinary.com/\({CLOUD_NAME}/video/upload/\){cloudVideoId}.mp4`;
+    // 1. Download Base Video (Zero transformation credits used)
     await downloadFile(rawVideoUrl, baseVideoPath);
 
-    // 2. Loop through stickers, download PNG from Cloudinary, aur FFmpeg se merge karo
+    // 2. Stickers download karo aur FFmpeg se overlay lagao
     for (const item of TEST_PAGES) {
       console.log(`\n--- 🧪 Testing sticker: \({item.sticker} for\){item.name} ---`);
       const stickerPath = path.join(__dirname, `${item.sticker}.png`);
       const stickerUrl = `https://res.cloudinary.com/\({CLOUD_NAME}/image/upload/\){item.sticker}.png`;
       
-      // Download sticker PNG
       await downloadFile(stickerUrl, stickerPath);
 
-      // Render locally
       const outVideo = path.join(outputDir, `output_${item.sticker}.mp4`);
       renderVideoWithSticker(baseVideoPath, stickerPath, outVideo);
 
