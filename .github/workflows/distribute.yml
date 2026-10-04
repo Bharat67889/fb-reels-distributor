@@ -17,6 +17,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Setup FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+
       - name: Install Dependencies
         run: npm install axios
 
