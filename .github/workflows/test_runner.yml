@@ -1,0 +1,29 @@
+name: TEST - FFmpeg Sticker Replacement
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-rendering:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install axios
+
+      - name: Run FFmpeg Local Test
+        run: node test_ffmpeg.js
+
+      - name: Save Generated Videos to Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-rendered-reels
+          path: test_outputs/*.mp4
