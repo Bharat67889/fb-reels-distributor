@@ -2,6 +2,7 @@ const axios = require("axios");
 const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
 // =====================================================================
 // 🌐 CONFIGURATION & SETTINGS
@@ -10,6 +11,9 @@ const CLOUD_NAME = "djlipqlut";
 const BANNER_WIDTH = 380;
 const BANNER_MARGIN_X = 10;
 const BANNER_MARGIN_Y = 40;
+
+// Random Stickers Pool (inme se koi bhi randomly pick hoga)
+const AVAILABLE_STICKERS = ["fbsticker", "fbsticker_a", "fbsticker_b"];
 
 const FALLBACK_PIN_QUEUE_TSV =
   "https://docs.google.com/spreadsheets/d/1MrwItyy6IPNLSJbz1b53TGOTS2JBLTyg46Ql9xZpI6w/gviz/tq?tqx=out:csv&sheet=PinterestQueue";
@@ -23,7 +27,6 @@ const FB_PAGES_POOL = [
     pageId: "1010347005495122",
     accessToken:
       "EAAa8JIAfxkMBSkdYd1VLNhYrBZB8YxvGCqDLZAd3ZB5RDLnFBHqNOLZBmlXREGg57QxkXH2flugsmCDguvlWsDHPfeQwwCtMblBilBz7PkyuDokDdiIDSate5zu7lklBu4ZA5LZA5mymhbMWUDvGx1aRFvn4raHRbTMw8xOEvKHGbH6TIO2nY8C0zUpXIiyMTOz9NZC",
-    sticker: "fbsticker_a",
     tagPrefix: "a"
   },
   {
@@ -31,10 +34,15 @@ const FB_PAGES_POOL = [
     pageId: "1037521126108764",
     accessToken:
       "EAAa8JIAfxkMBSsn5ZAkQmbYV1gOIGrwOenNxH2SxBqnUgG0VmzyYidBoFTJK7Cb9qUHyzQRQXNfyN1CxVZB84usZCCcEsVXhBGJfYCbFhu5G5dl2RFQRQCfLZCmQBRSwfH59Igr5IHxSxkA1P4784UEoJxpEx0ON8rB6D6LAbMcl6hZBYbyW9q3lDGcNP5R2ms2kv",
-    sticker: "fbsticker_b",
     tagPrefix: "b"
   }
 ];
+
+// Random sticker picker
+function getRandomSticker() {
+  const randomIndex = Math.floor(Math.random() * AVAILABLE_STICKERS.length);
+  return AVAILABLE_STICKERS[randomIndex];
+}
 
 // Extract base Cloudinary public ID from URL
 function extractPublicId(url) {
@@ -82,10 +90,27 @@ async function downloadFile(url, targetPath) {
   });
 }
 
-// Render video with sticker overlay locally using FFmpeg
-function renderVideoWithSticker(inputVideo, stickerImg, outputPath) {
-  const filterString = "[1:v]scale=" + BANNER_WIDTH + ":-1[stk];[0:v][stk]overlay=" + BANNER_MARGIN_X + ":" + BANNER_MARGIN_Y;
-  const cmd = 'ffmpeg -y -i "' + inputVideo + '" -i "' + stickerImg + '" -filter_complex "' + filterString + '" -c:a copy -preset ultrafast "' + outputPath + '"';
+// Render video locally with sticker + Algorithm-Proof Micro Tweaks
+function renderVideoWithSticker(inputVideo, stickerImg, outputPath, pageIndex) {
+  // Page index ke hisaab se subtle mathematical color & crop variance (Human eye ko dikhega bhi nahi)
+  const contrastMod = (1.001 + (pageIndex * 0.002)).toFixed(3);
+  const brightnessMod = (0.001 + (pageIndex * 0.001)).toFixed(3);
+  const cropPixels = (pageIndex % 2 === 0) ? 2 : 0; // 2-pixel subtle crop
+  const uniqueMetadataHash = crypto.randomBytes(8).toString("hex");
+
+  // Filter chain: 
+  // 1. [0:v] eq filter modifies brightness/contrast by 0.2%
+  // 2. crop filter shifts frame matrix
+  // 3. sticker overlay applied
+  const filterString = "[0:v]crop=in_w-" + cropPixels + ":in_h-" + cropPixels + ",eq=contrast=" + contrastMod + ":brightness=" + brightnessMod + "[base];" +
+                       "[1:v]scale=" + BANNER_WIDTH + ":-1[stk];" +
+                       "[base][stk]overlay=" + BANNER_MARGIN_X + ":" + BANNER_MARGIN_Y;
+
+  const cmd = 'ffmpeg -y -i "' + inputVideo + '" -i "' + stickerImg + '" ' +
+              '-filter_complex "' + filterString + '" ' +
+              '-metadata comment="uid_' + uniqueMetadataHash + '" ' +
+              '-c:a copy -preset ultrafast "' + outputPath + '"';
+
   execSync(cmd, { stdio: "pipe" });
 }
 
@@ -187,21 +212,22 @@ async function main() {
     await downloadFile(rawVideoUrl, baseVideoPath);
 
     // Sequential loop across pool with isolated error handling
-    for (const page of FB_PAGES_POOL) {
-      const stickerPath = path.join(__dirname, page.sticker + ".png");
+    for (let i = 0; i < FB_PAGES_POOL.length; i++) {
+      const page = FB_PAGES_POOL[i];
+      const chosenSticker = getRandomSticker();
+      const stickerPath = path.join(__dirname, chosenSticker + ".png");
       const renderedVideoPath = path.join(__dirname, "rendered_" + page.pageId + ".mp4");
 
       try {
-        // Plain string concatenation (no template literal escape bug)
         const modifiedCaption = page.tagPrefix + fbCleanCaption;
 
-        // 1. Fetch sticker PNG from Cloudinary
-        const stickerUrl = "https://res.cloudinary.com/" + CLOUD_NAME + "/image/upload/" + page.sticker + ".png";
+        // 1. Fetch random sticker PNG from Cloudinary
+        const stickerUrl = "https://res.cloudinary.com/" + CLOUD_NAME + "/image/upload/" + chosenSticker + ".png";
         await downloadFile(stickerUrl, stickerPath);
 
-        // 2. Render local video with sticker via FFmpeg
-        console.log("🎬 Rendering local reel with sticker [" + page.sticker + "] for " + page.name + "...");
-        renderVideoWithSticker(baseVideoPath, stickerPath, renderedVideoPath);
+        // 2. Render locally with sticker + unique binary tweaks
+        console.log("🎬 Rendering reel for [" + page.name + "] using sticker [" + chosenSticker + "] (Unique hash applied)...");
+        renderVideoWithSticker(baseVideoPath, stickerPath, renderedVideoPath, i);
 
         // 3. Publish to Facebook Graph API
         await publishReel(page, renderedVideoPath, modifiedCaption);
@@ -211,7 +237,6 @@ async function main() {
           : err.message;
         console.error("❌ [Page Skipped: " + page.name + "]: " + errMsg);
       } finally {
-        // Cleanup per-page temp files immediately
         if (fs.existsSync(stickerPath)) fs.unlinkSync(stickerPath);
         if (fs.existsSync(renderedVideoPath)) fs.unlinkSync(renderedVideoPath);
       }
