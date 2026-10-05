@@ -91,27 +91,28 @@ function renderVideoWithSticker(inputVideo, stickerImg, outputPath) {
 
 // Single Reel Publisher to Graph API
 async function publishReel(page, localVideoPath, caption) {
-  console.log(`\n🚀 Processing Page: [\({page.name}] (\){page.pageId})`);
-  console.log(`📝 Modified Caption: ${caption}`);
+  console.log("\n🚀 Processing Page: [" + page.name + "] (" + page.pageId + ")");
+  console.log("📝 Modified Caption: " + caption);
 
   // Phase 1: Initialize
   const initRes = await axios.post(
-    `https://graph.facebook.com/v19.0/${page.pageId}/video_reels`,
+    "https://graph.facebook.com/v19.0/" + page.pageId + "/video_reels",
     {
       upload_phase: "start",
       access_token: page.accessToken
     }
   );
 
-  const { video_id, upload_url } = initRes.data;
-  console.log(`📦 Initialized. Video ID: ${video_id}`);
+  const video_id = initRes.data.video_id;
+  const upload_url = initRes.data.upload_url;
+  console.log("📦 Initialized. Video ID: " + video_id);
 
   // Phase 2: Read Local Binary Stream
   const videoBuffer = fs.readFileSync(localVideoPath);
 
   await axios.post(upload_url, videoBuffer, {
     headers: {
-      Authorization: `OAuth ${page.accessToken}`,
+      Authorization: "OAuth " + page.accessToken,
       offset: "0",
       file_size: videoBuffer.length.toString(),
       "Content-Type": "application/octet-stream"
@@ -121,12 +122,12 @@ async function publishReel(page, localVideoPath, caption) {
     timeout: 120000
   });
   console.log(
-    `📤 Uploaded ${(videoBuffer.length / (1024 * 1024)).toFixed(2)} MB binary data.`
+    "📤 Uploaded " + (videoBuffer.length / (1024 * 1024)).toFixed(2) + " MB binary data."
   );
 
   // Phase 3: Publish
   const publishRes = await axios.post(
-    `https://graph.facebook.com/v19.0/${page.pageId}/video_reels`,
+    "https://graph.facebook.com/v19.0/" + page.pageId + "/video_reels",
     {
       upload_phase: "finish",
       video_id: video_id,
@@ -136,11 +137,8 @@ async function publishReel(page, localVideoPath, caption) {
     }
   );
 
-  console.log(
-    `✅ Success! Reel published on [\({page.name}]. Video ID:\){
-      publishRes.data.video_id || video_id
-    }`
-  );
+  const finalVideoId = publishRes.data && publishRes.data.video_id ? publishRes.data.video_id : video_id;
+  console.log("✅ Success! Reel published on [" + page.name + "]. Video ID: " + finalVideoId);
 }
 
 // Main Runner
@@ -176,32 +174,33 @@ async function main() {
       );
     }
 
-    console.log(`🎯 Detected Video Public ID: ${cloudVideoId}`);
-    console.log(`📋 Original Main Caption: ${mainCaption}`);
+    console.log("🎯 Detected Video Public ID: " + cloudVideoId);
+    console.log("📋 Original Main Caption: " + mainCaption);
 
     // Facebook Caption Clean: "Visit Site" -> "Check Bio"
     const fbCleanCaption = mainCaption.replace(/visit\s*site/gi, "Check Bio");
-    console.log(`✨ FB Formatted Caption: ${fbCleanCaption}`);
+    console.log("✨ FB Formatted Caption: " + fbCleanCaption);
 
     // Download raw base video ONCE (Zero transformation credits used)
     const rawVideoUrl = "https://res.cloudinary.com/" + CLOUD_NAME + "/video/upload/" + cloudVideoId + ".mp4";
-    console.log(`⬇️ Downloading base video: ${rawVideoUrl}`);
+    console.log("⬇️ Downloading base video: " + rawVideoUrl);
     await downloadFile(rawVideoUrl, baseVideoPath);
 
     // Sequential loop across pool with isolated error handling
     for (const page of FB_PAGES_POOL) {
-      const stickerPath = path.join(__dirname, `${page.sticker}.png`);
-      const renderedVideoPath = path.join(__dirname, `rendered_${page.pageId}.mp4`);
+      const stickerPath = path.join(__dirname, page.sticker + ".png");
+      const renderedVideoPath = path.join(__dirname, "rendered_" + page.pageId + ".mp4");
 
       try {
-        const modifiedCaption = `\({page.tagPrefix}\){fbCleanCaption}`;
+        // Plain string concatenation (no template literal escape bug)
+        const modifiedCaption = page.tagPrefix + fbCleanCaption;
 
         // 1. Fetch sticker PNG from Cloudinary
         const stickerUrl = "https://res.cloudinary.com/" + CLOUD_NAME + "/image/upload/" + page.sticker + ".png";
         await downloadFile(stickerUrl, stickerPath);
 
         // 2. Render local video with sticker via FFmpeg
-        console.log(`🎬 Rendering local reel with sticker [\({page.sticker}] for\){page.name}...`);
+        console.log("🎬 Rendering local reel with sticker [" + page.sticker + "] for " + page.name + "...");
         renderVideoWithSticker(baseVideoPath, stickerPath, renderedVideoPath);
 
         // 3. Publish to Facebook Graph API
@@ -210,7 +209,7 @@ async function main() {
         const errMsg = err.response
           ? JSON.stringify(err.response.data)
           : err.message;
-        console.error(`❌ [Page Skipped: \({page.name}]:\){errMsg}`);
+        console.error("❌ [Page Skipped: " + page.name + "]: " + errMsg);
       } finally {
         // Cleanup per-page temp files immediately
         if (fs.existsSync(stickerPath)) fs.unlinkSync(stickerPath);
