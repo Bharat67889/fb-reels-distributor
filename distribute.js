@@ -35,7 +35,103 @@ const FB_PAGES_POOL = [
     accessToken:
       "EAAa8JIAfxkMBSsn5ZAkQmbYV1gOIGrwOenNxH2SxBqnUgG0VmzyYidBoFTJK7Cb9qUHyzQRQXNfyN1CxVZB84usZCCcEsVXhBGJfYCbFhu5G5dl2RFQRQCfLZCmQBRSwfH59Igr5IHxSxkA1P4784UEoJxpEx0ON8rB6D6LAbMcl6hZBYbyW9q3lDGcNP5R2ms2kv",
     tagPrefix: "b"
-  }
+  },
+  {
+    name: "True Friendship",
+    pageId: "1040901179111632",
+    accessToken:
+      "EAAa8JIAfxkMBSqXdq8KSoc7lU79gRfycXBuTJ2XeQYNEoSKOivTidHSZCiFUE3dkF1ZAZA89ZCzyRGzLGZAyMRPIbBXfJ7Y4HLtQnMICe0lVQD2slnCVrUSOkvZAy7DoqRq1Vlwvh9M3IEZABeivKWLdxjxVG4AWkXGmGN7a0QpMjn5SBzUMeCP32Ud50BpYZAsOkFQuDZCy4",
+    tagPrefix: "c"
+  },
+{
+    name: "Success Mindset",
+    pageId: "920483017826220",
+    accessToken:
+      "EAAa8JIAfxkMBSh135kS9tYgz1tkZC6TXqIpY4rNuGpoZCejGofECpeIeg1dxewgRi2vfZBEwVZBy65sdZBTLjqnwnrxyaFr1NcWnyZB5ZCSqntZAMQ75pLQmoMTtDe9OsZCQv4FiGXQTlOQUQ1T6SaT8bIhOVOlUZCAl8zJ0PeZC64k0xHKab8WMnofhrNYjMDChbUeAp2E",
+    tagPrefix: "d"
+  },
+  {
+    name: "Real Life Wisdom",
+    pageId: "919965154544056",
+    accessToken:
+      "EAAa8JIAfxkMBSlctGjrLclFMnkvkjsxrdHJXhqtVUP9U2i6ZA1KTuK2ichRsY6OVsAKdZCHl8WPR6GAS9ctoe5I81a4JdYuG4x6B1DA8oHfmCBa7OOYX01MsFr5VSDqZA8xVzNdyFOVFm6JXPWCggL9mP5qZBamgsZBc4GH6x5ZCVkqmezwNjMoal7bjDh4ke4LzPCQ9Yr",
+    tagPrefix: "e"
+  },
+  {
+    name: "Rise Everyday",
+    pageId: "934706813069026",
+    accessToken:
+      "EAAa8JIAfxkMBShhLWLfmNnZBq4sRgdXjeeyZCJsg5erTDSBi0PWoefZCOVhnGPpxMpGZCjfMeEJfAVbCdOtSZAvtGjFQEbIWTxB70TZAIZCIQW4BQxadLWSsCshOTrzTGtLHx2kcyLHIGN5nZBserkx9nY0ZC7FTZA9P6pZA2R02HeZAqnZAesXdbwYUnesNBpaecotOq5CdR",
+    tagPrefix: "f"
+  },
+  {
+    name: "Coloring Books hub 13",
+    pageId: "1011660995364685",
+    accessToken:
+      "EAAa8JIAfxkMBSjXA8ZCl5kBZCIjvhzs28ZAyRC0T5nNRnh4rCTAN4RvGQjGcbx6WjrBK3NkxL9JiJf8Uz3Cji3dH1eVoHuaT5NtDByJBZCTOKgTyYdcQZAhi3ZBYSvZB5G1AUl7ZBLF8JdZBAT6zZCpusCYC3dhs2Q0MFaevQURUZBawb4kBRvkoRjLxm0uMgNQCUy33CuwX8ZBg",
+    tagPrefix: "g"
+  },
+{
+    name: "Coloring Books hub 12",
+    pageId: "1110294448823674",
+    accessToken:
+      "EAAa8JIAfxkMBSnBe1VN7ZCZCdTcil1I7e3uxahP1jLh9z9tZBe4HqV2upS09ko00g6Nl6cP2LaG2vbLLXNygN7xi3MLMgTClhKSdZBABZBDqOcgHIvG1pq3qZArRZCAtX0EFDe1HcVdwNIXeDZAZAEpdELaKGZC0JnPN8Us7PBYUgbyoUWulXpe41Mu0SM74FzQ66917FK83GJ",
+    tagPrefix: "h"
+  },
+  {
+    name: "Alpha Attitude",
+    pageId: "983125891550077",
+    accessToken:
+      "EAAa8JIAfxkMBShhKX9Xo0pbC6oWZAGm5xUgo2wsMN4eOSAHuoy4B0Gq1gDMgcwXgZCeQVCn89py0Uhy1SajVlTIpXasmABN2dOC7XfFYxZCNIyCsHU2AemZBB1D7eVFUJbcvQtyO9h09vsLNKdg0rh1ZAwjx6sOASxPGsILxn9W8LMxlp5bubALjHPDoyrUfUYoJU9X9W",
+    tagPrefix: "i"
+  },
+  {
+    name: "A to Z Books",
+    pageId: "891602070713772",
+    accessToken:
+      "EAAa8JIAfxkMBSjb7opVu1sHiAoARasUXy9iTdl1ZAoz0p3AgKwhzqIwAftQ2XFsXIZBZAyNCdyzifodTkf6PvjMwqZBgaI2kLJuSncNnvLhwRQSxdPaQBHqyAGxfyKvHZCUL3ss0yKaQwNFfRvZAGl7EQxvVLURcHoNTfn2tThz3MTIdtb0Wb588qRY48gsJReyOzK",
+    tagPrefix: "j"
+  },
+  {
+    name: "Deep Inside Us",
+    pageId: "1033610549825307",
+    accessToken:
+      "EAAa8JIAfxkMBSsZA1TaUexVxTceZATqoZBYWFpde4Mnw7NKZBHvpJPaMnNi3ehqg3TuZBXRvO8vvT0cZBZCuztzizp2RPQXKzTacZAetaXz56J75qeyJTUc8L1Y50fi6sqZATwSxNQRexbphzIJAaQNuJjj1lEakWZClwtgAlhGnuHZAxbkzEQL7yCR21rX7REgXtxfaw1wPGRO",
+    tagPrefix: "k"
+  },
+  {
+    name: "Brain Sparks",
+    pageId: "973044389215643",
+    accessToken:
+      "EAAa8JIAfxkMBSkp5J6tM1xHDA9i3VfdZB3ZArYtWE5o5xzXLffw36fpOMQqkAk7Sih8cxXt4EZAd8xRurbZCiwdNKENgucf0d8OK1lZC2WIP4RvERiXBg0hUK14C5CWmgbh1kPb9ZCAgYq7wgEOx08TZAYRa2tNaGZBR7x65YsHIx6eN5vszWzNMaWXjEKuhqSoZCHIZCZB",
+    tagPrefix: "l"
+  },
+  {
+    name: "Prajapati Apps",
+    pageId: "991944033992816",
+    accessToken:
+      "EAAa8JIAfxkMBSo3pGRBfOaT3ISnWpgCKapGzvkfMSHFvSa64pR9xDZCJ9iokIuxuTFIooI0NREUPDDfUNL6EViybWWIYfVyG9xSQqZC2vYWZCZCvboyzHrkPajUCz30sX6X1EZBadyRH1EaQaGZB8zSma22AIVpplz6nmCecQtPX2EsezZC5vYrYVNCetfHLpdxMGMc",
+    tagPrefix: "m"
+  },
+{
+    name: "Coloring Books studio",
+    pageId: "831082850097688",
+    accessToken:
+      "EAAa8JIAfxkMBSjFE0GaqIEZBL5Q6aC7dBFPjzpZBweLHaMPSZCc8vxyFpeUv023ZBTrvexYvb3KFQGqZBbQvS0ZCT3AkJSBZCp0qht0qPk5jKLJhfZBCvHmqA4JZBpCZCgrtcoAElUVKF4rPuQL8fEOV0JDSaOrL9RtdXBp5OxHp4I428ohsAlCv1SscJ7NDwymhEd2FGp",
+    tagPrefix: "n"
+  },
+
+
+
+
+
+
+
+
+
+
+
+  
 ];
 
 // Random sticker picker
